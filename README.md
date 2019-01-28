@@ -47,7 +47,7 @@ tokens: {id: bytearray,text: bytearray,word: chararray}
 We will load the dictionary into pig by using the below statement:
 $dictionary = load '/AFINN.txt' using PigStorage('\t') AS(word:chararray,rating:int);
 We can see the contents of the AFINN dictionary in the below screen shot.
-#####################
+![capture4](https://user-images.githubusercontent.com/26787806/51831583-732c9680-2318-11e9-80e8-eb3283a9354d.PNG)
 
 # Now, let’s perform a map side join by joining the tokens statement and the dictionary contents using this relation:
 word_rating = join tokens by word left outer, dictionary by word using 'replicated';
