@@ -18,15 +18,15 @@ $load_tweets = LOAD '/demonetization-tweets.csv' USING PigStorage(',');
 
 Now after loading successfully, you can see the tweets loaded successfully into pig by using the dump command or illustrate command. dump command takes much time as it create mapreduce job as we are testing the same so we also can use illustrate command.
 
-# Here is the sample tweet
+#### Here is the sample tweet
 ("1","RT @rssurjewala: Critical question: Was PayTM informed about #Demonetization edict by PM? It's clearly fishy and requires full disclosure &amp;�",FALSE,0,NA,"2016-11-23 18:40:30",FALSE,NA,"801495656976318464",NA,"<a href=""http://twitter.com/download/android"" rel=""nofollow"">Twitter for Android</a>","HASHTAGFARZIWAL",331,TRUE,FALSE)
 
-# Data Set Description
+#### Data Set Description
 
     id,Text (Tweets),favorited,favoriteCount,replyToSN,created,truncated,replyToSID,id,replyToUID,statusSource,screenName, 
     retweetCount,isRetweet,retweeted
 
-# Now from this columns, we will extract the id and the tweet_text as follows
+#### Now from this columns, we will extract the id and the tweet_text as follows
 
 $extract_details = FOREACH load_tweets GENERATE $0 as id,$1 as text;
 
@@ -42,14 +42,14 @@ For every word in the tweet_text, each word will be taken and created as a new r
 In the above sample record, we can see that at the last RT word has been taken and created a new record for that. we can use the describe tokens command to check the schema of that relation and is as follows:
 tokens: {id: bytearray,text: bytearray,word: chararray}
 
-# Now, we have to analyse the Sentiment for the tweet by using the words in the text. We will rate the word as per its meaning from +5 to -5 using the dictionary AFINN. The AFINN is a dictionary which consists of 2500 words which are rated from +5 to -5 depending on their meaning. You can download the dictionary from the above link mentioned below data set link.
+#### Now, we have to analyse the Sentiment for the tweet by using the words in the text. We will rate the word as per its meaning from +5 to -5 using the dictionary AFINN. The AFINN is a dictionary which consists of 2500 words which are rated from +5 to -5 depending on their meaning. You can download the dictionary from the above link mentioned below data set link.
 
 We will load the dictionary into pig by using the below statement:
 $dictionary = load '/AFINN.txt' using PigStorage('\t') AS(word:chararray,rating:int);
 We can see the contents of the AFINN dictionary in the below screen shot.
 ![capture4](https://user-images.githubusercontent.com/26787806/51831583-732c9680-2318-11e9-80e8-eb3283a9354d.PNG)
 
-# Now, let’s perform a map side join by joining the tokens statement and the dictionary contents using this relation:
+#### Now, let’s perform a map side join by joining the tokens statement and the dictionary contents using this relation:
 word_rating = join tokens by word left outer, dictionary by word using 'replicated';
 
 We can see the schema of the statement after performing join operation by using the below command:
@@ -59,27 +59,27 @@ chararray,dictionary::rating: int}
 
 In the above statement describe word_rating, we can see that the word_rating has joined the tokens (consists of id, tweet text, word) statement and the dictionary(consists of word, rating).
 
-# Now we will extract the id,tweet text and word rating(from the dictionary) by using the below relation.
+#### Now we will extract the id,tweet text and word rating(from the dictionary) by using the below relation.
 rating = foreach word_rating generate tokens::id as id,tokens::text as text, dictionary::rating as rate;
 
 We can now see the schema of the relation rating by using the command describe rating.
 rating: {id: bytearray,text: bytearray,rate: int}
 
 In the above statement describe rating we can see that our relation now consists of id,tweet text and rate(for each word).
-# Now, we will group the rating of all the words in a tweet by using the below relation:
+#### Now, we will group the rating of all the words in a tweet by using the below relation:
 word_group = group rating by (id,text);
 
 Here we have grouped by two constraints, id and tweet text.
-# Now, let’s perform the Average operation on the rating of the words per each tweet.
+#### Now, let’s perform the Average operation on the rating of the words per each tweet.
 
 avg_rate = foreach word_group generate group, AVG(rating.rate) as tweet_rating;
-# Now we have calculated the Average rating of the tweet using the rating of each word.
+#### Now we have calculated the Average rating of the tweet using the rating of each word.
 
 From the above relation, we will get all the tweets i.e., both positive and negative.
 Here, we can classify the positive tweets by taking the rating of the tweet which can be from 0-5. We can classify the negative tweets by taking the rating of the tweet from -5 to -1.
 
 We have now successfully performed the Sentiment Analysis on Twitter data using Pig. We now have the tweets and its rating, so let’s perform an operation to filter out the positive tweets.
-# Now we will filter the positive tweets using the below statement:
+#### Now we will filter the positive tweets using the below statement:
 
 positive_tweets = filter avg_rate by tweet_rating>=0;
 
@@ -96,7 +96,7 @@ Here are the sample tweets with positive ratings.
 ((And respect their decision,but support opposition just b'coz of party"),2.0)
 (( the avg indian wants corruptn free india.. So in d name of black money, everybody agrees),1.0)
 
-# Like this we will also filter the negative tweets as follows:
+#### Like this we will also filter the negative tweets as follows:
 negative_tweets = filter avg_rate by tweet_rating<0;
 Here are the sample tweets with negative rating
 
